@@ -110,15 +110,22 @@ class SteadyState:
         self.sound[snd].play(when=when)
 
     def instructions(self):
+        self.cross.text="SteadyState. Ready?"
+        self.cross.draw()
+        self.win.flip()
         event.waitKeys()
+        self.cross.text="+"
+        self.cross.draw()
+        self.win.flip()
 
 if __name__ == "__main__":
-    n_each = 5
-    dur = 1.0
-    t = SteadyState()
+    n_each = 150
+    dur = 1.1
     order = ['20','30','40']
+    t = SteadyState()
 
     # task instructions here
+    t.instructions()
 
     start = core.getTime()
     times=[start + 1.5 + i*dur
@@ -127,9 +134,11 @@ if __name__ == "__main__":
     pt("start")
     t.send_ttl(128)
 
+    # 3 different train frequencies
     for sndi,snd in enumerate(order):
         ttl = int(snd)/10;
 
+        # 150 of each
         for i in range(n_each):
             ii = sndi*n_each + i
             stime = times[ii]
