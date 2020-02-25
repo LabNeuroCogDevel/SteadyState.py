@@ -1,0 +1,91 @@
+* SteadyState EEG Task 
+Port of /Presentation/ 
+
+** Task settings
+*** Triggers and duration
+Each time we play a sound, send a trigger. 2, 3, or 4
+there are 150 of each repeated in a block. 1.10secs each.
+
+ #+begin_src python :session :export results
+   import mne
+   import numpy as np
+   import pandas as pd
+   from sspipe import p, px
+   exf = '/Volumes/Hera/Raw/EEG/7TBrainMech/11752_20190409/11752_20190409_SS.bdf'
+   b = mne.io.read_raw_bdf(exf)
+   s = b.get_data(['Status'])[0,:]
+   mins = min(s)
+   e = mne.find_events(b)
+   validttl = [int(x)  for x in e[:,2]-mins if x >0 and x < 300 ]
+   cnt = {}
+   for ttl in validttl:
+     cnt[ttl] = cnt.get(ttl,0) + 1
+
+   # quck run length encode
+   i = np.where(np.diff([0]+validttl+[0])!=0)[0]
+   l = np.diff(i)
+   rle = [(validttl[v], l[ii]) for ii,v in enumerate(i[:len(i)-1])]
+   # print(rle)
+   # [(4, 150), (2, 150), (3, 150)]
+
+   # get even duration for each event type
+   #  - take the diff of event onsets and div by sample rate 
+   #  - only works because events are blocked rather than interleaved
+   meddur =\
+     [
+       e[e[:,2] == k+mins,0] \
+       | p(np.diff) \
+       | px/b.info['sfreq'] \
+       | p(lambda x: {
+	    'ttl': k,
+	    'n': cnt[k],
+	    'med_dur': np.median(x),
+	    'std': np.std(x)})
+	      for k in cnt.keys()\
+      ] | p(pd.DataFrame)
+   # send meddur back
+   meddur
+ #+end_src
+
+ #+RESULTS:
+ :     med_dur    n       std  ttl
+ : 0  1.107422  150  0.000973    4
+ : 1  1.107422  150  0.000973    2
+ : 2  1.107422  150  0.000973    3
+
+**** trigger reset to zero
+     
+before each trigger there are zeros. after 6 samples
+#+begin_src python :session :results output
+  print(np.array([s[e[x,0]-1:e[x,0]+10] for x in [1,2,3]]))
+  print(6/b.info['sfreq'])
+#+end_src
+
+#+RESULTS:
+: [[0. 4. 4. 4. 4. 4. 4. 0. 0. 0. 0.]
+:  [0. 4. 4. 4. 4. 4. 4. 0. 0. 0. 0.]
+:  [0. 4. 4. 4. 4. 4. 4. 0. 0. 0. 0.]]
+: 0.01171875
+
+*** settings
+#+begin_quote *.sce
+default_background_color = 0,0,0;              
+picture {         text { caption = "+"; 
+               font_size = 36;
+               font_color = 255,255,255;
+               };
+           x = 0; y = 0;} default;
+	  
+trial {duration = 1100 ...}
+.... 128 start time=10   duration=1500
+.... 129 end   time=1500 duration=20
+#+end_quote
+
+| file        | "port" |
+| gamma40.sce |      4 |
+| gamma20     |      2 |
+| gamma30     |      3 |
+
+** Psychopy
+
+https://www.psychopy.org/api/sound.html
