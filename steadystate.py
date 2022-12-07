@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from psychopy import visual, core,  event, logging, prefs
+from random import shuffle
 import psychtoolbox as ptb
 prefs.hardware['audioLib'] = ['PTB', 'pyo','pygame']
 from psychopy.sound import Sound
@@ -122,13 +123,18 @@ if __name__ == "__main__":
     n_each = 150
     dur = 1.1
     order = ['20','30','40']
+
+    # 20221207 - is totally random okay?
+    shuffle(order)
+    print(f"Order: {order}")
+
     t = SteadyState()
 
-    # task instructions here
     t.instructions()
 
     start = core.getTime()
-    times=[start + 1.5 + i*dur
+    first_wait = 1.5  # seconds
+    times=[start + first_wait + i*dur
            for i in range(n_each*len(order))]
 
     pt("start")
