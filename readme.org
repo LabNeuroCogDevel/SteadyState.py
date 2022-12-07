@@ -3,8 +3,9 @@ Port of /Presentation/
 
 ** Task settings
 *** Triggers and duration
-Each time we play a sound, send a trigger. 2, 3, or 4
-there are 150 of each repeated in a block. 1.10secs each.
+For each trial, a 20, 30, or 40Hz "click train" sounds is played.
+The trial starts with a TTL value of 2, 3, or 4 depending on the sound frequency.
+The trials are presented in blocks of 150 by frequency and last 1.10 seconds.
 
  #+begin_src python :session :export results
    import mne
