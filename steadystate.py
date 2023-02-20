@@ -57,11 +57,13 @@ def create_window(fullscr, screen=0):
 class SteadyState:
     def __init__(self):
         "start up the task and load up what we need"
-        self.usePP = False
+        self.usePP = True
         self.zeroTTL = True
         self.verbose = False
-        self.fullscreen = False
-        self.pp_address=0xDFF8
+        self.fullscreen = True
+        #self.pp_address=0xDFF8
+        # 2023-02-20
+        self.pp_address=0xD010
 
         # load up 
         self.init_pp()
@@ -111,11 +113,14 @@ class SteadyState:
         self.sound[snd].play(when=when)
 
     def instructions(self):
+        # todo. text is too large?
         self.cross.text="SteadyState. Ready?"
         self.cross.draw()
         self.win.flip()
         event.waitKeys()
-        self.cross.text="+"
+        
+        # same screen for duration of task
+        self.cross.text="" # not "+". but just empty black screen
         self.cross.draw()
         self.win.flip()
 
