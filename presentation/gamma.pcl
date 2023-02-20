@@ -1,0 +1,15 @@
+int i = 1;
+startRecording.present();
+wait_interval(50);
+loop
+until   
+#tones will be played as many times as specified below
+   i > 150
+   
+begin 
+i = i+1;
+play_train.present();
+#doISI.present();
+end;      
+
+endRecording.present();
