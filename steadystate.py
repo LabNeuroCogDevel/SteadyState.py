@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 from psychopy import visual, core, event, logging, prefs
 from random import shuffle
+import subprocess
 import psychtoolbox as ptb
 from typing import Optional, Dict
 
 prefs.hardware["audioLib"] = ["PTB", "pyo", "pygame"]
 from psychopy.sound import Sound
+# 2025-11-02WF - high prority Sound doesn't support mulitple streams
+#                use AudioClip to preload data
+from psychopy.sound.audioclip import AudioClip
 
 
 """
@@ -18,6 +22,12 @@ Using functions cribbed from MGSEncMem:
 https://github.com/LabNeuroCogDevel/mgs_encode_memory.py
 """
 
+## 2025-10-31 - different ports for different computers
+PORTS = {
+        'eegtask': "/dev/parport0", # 2025-10-31 - linux eeg
+        "xxx": 53264 # 2025-10 - win11
+        }
+HOST = subprocess.run("hostname", capture_output=True).stdout.decode().strip()
 
 def pt(msg):
     print("[%.03f] %s" % (core.getTime(), msg))
@@ -60,6 +70,11 @@ def create_window(fullscr, screen=0):
     win.flip()
     return win
 
+def load_snd(file, sampleRate): 
+    snddata = AudioClip.load(file)
+    snddata.resample(sampleRate)
+    return snddata
+
 class FakeSound:
     "Mock class for quickly testing w/o configuring sound."
     def __init__(self, snd):
@@ -67,6 +82,8 @@ class FakeSound:
     def play(self, when):
         pass
     def stop(self):
+        pass
+    def setSound(self, obj):
         pass
 
 class SteadyState:
@@ -79,14 +96,19 @@ class SteadyState:
         self.verbose = False
         # self.pp_address=0xDFF8
         # 2023-02-20
-        self.pp_address = 0xD010
+        #self.pp_address = 0xD010
+        self.pp_address = PORTS.get(HOST,0xD010)
 
         # load up
         self.init_pp()
         if self.useSound:
-            self.sound = {x: Sound("click-%sHzTrain.wav" % x) for x in ["20", "30", "40"]}
+            self.snd_dev = Sound()
+            freq = self.snd_dev.sampleRate
         else:
-            self.sound = {x: FakeSound(x) for x in ["20", "30", "40"]}
+            self.snd_dev = FakeSound()
+            freq = 44100
+
+        self.sound = {x: load_snd("click-%sHzTrain.wav" % x, freq) for x in ["20", "30", "40"]}
 
         self.win = create_window(self.fullscreen)
         # a fixation cross with 2x normal size
@@ -127,8 +149,9 @@ class SteadyState:
             self.port.setData(0)
 
     def play_snd(self, snd, when):
-        self.sound[snd].stop()
-        self.sound[snd].play(when=when)
+        self.snd_dev.stop()
+        self.snd_dev.setSound(self.sound[snd])
+        self.snd_dev.play(when=when)
 
     def instructions(self, freq=""):
         self.cross.text = f"SteadyState {freq}\nReady?"

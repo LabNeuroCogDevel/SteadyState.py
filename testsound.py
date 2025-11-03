@@ -11,7 +11,7 @@ from psychopy.sound import Sound
 # https://www.psychopy.org/api/sound/audioclip.html
 snd = Sound()
 def loadsnd(file): 
-    snddata = AudioClip.load('click-20HzTrain.wav')
+    snddata = AudioClip.load(file)
     snddata.resample(snd.sampleRate)
     return snddata
 
@@ -44,11 +44,8 @@ for i in range(10):
     snd.stop()
     diffs.append(e-b)
     timemark("done")
+
 print(diffs)
-#print("playing 20")
-#s20.play()
-#wait(.5)
-#print("playing 30")
-#s30.play()
-#wait(.5)
-#
+# # with snd.stop() out side of timer
+# [0.00014257431030273438, 0.00039196014404296875, 0.00036835670471191406, 0.0003819465637207031, 0.0004181861877441406, 0.000396728515625, 0.00042366981506347656, 0.0003962516784667969, 0.0004794597625732422, 0.0004115104675292969, 0.0003654956817626953, 0.00041747093200683594, 0.00035858154296875, 0.0004210472106933594, 0.0003540515899658203, 0.0004036426544189453, 0.00038361549377441406, 0.0003590583801269531, 0.0003685951232910156, 0.00042128562927246094]
+
